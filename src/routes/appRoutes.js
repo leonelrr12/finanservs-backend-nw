@@ -127,7 +127,6 @@ appRoutes.post('/login',  (request, response) => {
             const token = jwt.sign(userForToken, process.env.SECRET)
             response.status(200).json({ idUser: id, email, id_ref, token })
          } else {
-           // const hash = await bcrypt.hash('123456', 10)
            console.log(hash);
            logger.error('Error Seguridad:', 'Credenciales Inválidas ...!')
            response.status(200).json({message: 'Credenciales Inválidas ...!', token: ''})
@@ -160,6 +159,27 @@ appRoutes.get('/afiliados/:id', (request, response) => {
     let sql = "SELECT id, nombre, apellidos, email, celular, dateCreated"
     sql += " FROM referidos"
     sql += " WHERE id_ref=?"
+
+    const { id } = request.params
+    const params = [ id ]
+  
+    config.cnn.query(sql, params, (error, results) => {
+      if (error) {
+        logger.error('Error SQL:', error.message)
+        response.status(500)
+      } 
+        if (results && results.length > 0) {
+            response.json(results)
+        } else {
+            response.json([])
+        }
+    })
+})
+
+appRoutes.get('/sponsor/:id', (request, response) => {
+    let sql = "SELECT nombre, apellidos"
+    sql += " FROM referidos"
+    sql += " WHERE id=?"
 
     const { id } = request.params
     const params = [ id ]
