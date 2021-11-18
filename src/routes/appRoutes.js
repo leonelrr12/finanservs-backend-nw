@@ -1,8 +1,11 @@
-const appRoutes = require('express').Router()
+const jwt = require('jsonwebtoken')
 const axios = require('axios')
 const nodemailer = require('nodemailer')
 
+const appRoutes = require('express').Router()
 const config = require('../utils/config')
+const logger = require('../utils/logger')
+const bcrypt = require('bcryptjs')
 
 appRoutes.get('/', (request, response) => {
   response.send('Hola Mundo!!!')
@@ -95,4 +98,101 @@ appRoutes.post('/email', async (req, res) => {
 
 })
 
+appRoutes.post('/user', async (request, response) => {
+    let sql = "INSERT INTO referidos (id_ref,email,nombre,apellidos,celular,hash)"
+    sql += " value (?,?,?,?,?,?)"
+    
+    // console.log(request.body);
+    const {id_ref,email,nombre,apellidos,celular,password} = request.body
+    try {
+      const hash = await bcrypt.hash(password, 10)
+      const params = [id_ref,email,nombre,apellidos,celular,hash]
+  
+      config.cnn.query(sql, params, (error, results, next) => {
+        if (error) {
+          logger.error('Error SQL:', error.message)
+          response.status(500)
+        } 
+        response.send('Ok!')
+      })
+    } catch (error) {
+      logger.error('Error hash:', error.message)
+    }
+})
+  
+appRoutes.post('/login',  (request, response) => {
+    let sql = "SELECT id,id_ref,email,nombre,apellidos,celular,hash"
+     sql += " FROM referidos a"
+     sql += " WHERE email=?"
+   
+     const { email, password } = request.body
+     const params = [ email ]
+   
+     config.cnn.query(sql, params, async (error, rows, fields) => {
+       if (error) {
+         logger.error('Error SQL:', error.message)
+         response.status(500)
+       } 
+       if (rows && rows.length > 0) {   
+         const {id, hash, id_ref, email, nombre} = rows[0]  
+         const validPass = await bcrypt.compare(password, hash)
+         if(validPass){
+            const userForToken = {
+                username: email,
+                idUser: id,
+            }
+            const token = jwt.sign(userForToken, process.env.SECRET)
+            response.status(200).json({ idUser: id, email, id_ref, token })
+         } else {
+           // const hash = await bcrypt.hash('123456', 10)
+           console.log(hash);
+           logger.error('Error Seguridad:', 'Credenciales Inválidas ...!')
+           response.status(200).json({message: 'Credenciales Inválidas ...!', token: ''})
+         }
+       } else {
+         logger.error('Error Seguridad:', 'Usuario no existe ...! ' + email)
+         response.json({message: 'Usuario no existe ...!', token: ''})
+       }
+     })
+})
+
+appRoutes.put('/chgpwd', async (request, response) => {
+    let sql = "UPDATE referidos SET hash=?"
+    sql += " WHERE email=?"
+  
+    const { email, password } = request.body
+    const hash = await bcrypt.hash(password, 10)
+    const params = [hash, email]
+  
+    config.cnn.query(sql, params, (error, results) => {
+      if (error) {
+        logger.error('Error SQL:', error.message)
+        response.status(500)
+      } 
+      response.send('Ok!')
+    })
+})
+
+appRoutes.get('/afiliados/:id', (request, response) => {
+    let sql = "SELECT id, nombre, apellidos, email, celular, dateCreated"
+    sql += " FROM referidos"
+    sql += " WHERE id_ref=?"
+
+    const { id } = request.params
+    const params = [ id ]
+  
+    config.cnn.query(sql, params, (error, results) => {
+      if (error) {
+        logger.error('Error SQL:', error.message)
+        response.status(500)
+      } 
+        if (results && results.length > 0) {
+            response.json(results)
+        } else {
+            response.json([])
+        }
+    })
+})
+  
+  
 module.exports = appRoutes
