@@ -85,7 +85,7 @@ appRoutes.post('/user', async (request, response) => {
     let sql = "INSERT INTO referidos (id_ref,email,nombre,apellidos,celular,hash)"
     sql += " value (?,?,?,?,?,?)"
     
-    // console.log(request.body);
+    console.log(request.body);
     const {id_ref,email,nombre,apellidos,celular,password} = request.body
     try {
       const hash = await bcrypt.hash(password, 10)
