@@ -17,23 +17,6 @@ appRoutes.get('/today-is', (request, response) => {
   response.json({ hoyes: dt2 })
 })
 
-appRoutes.post('/clientify-token', async (req, res) => {
-
-  axios({
-    method: "post",
-    url: "https://api.clientify.net/v1/api-auth/obtain_token/", 
-    data: {
-      "username": "rsanchez2565@gmail.com",
-      "password": "Acsorat25"
-    },
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(result => res.json(result.data))
-  .catch(error => console.log('error', error))
-})
-
 appRoutes.post('/email', async (req, res) => {
 
   const { email: euser, asunto, mensaje, telefono, monto, nombre, banco } = req.body
