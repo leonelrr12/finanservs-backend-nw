@@ -176,6 +176,27 @@ appRoutes.get('/afiliados/:id', (request, response) => {
     })
 })
 
+appRoutes.get('/referido/:id', (request, response) => {
+  let sql = "SELECT nombre, apellidos"
+  sql += " FROM referidos"
+  sql += " WHERE id=?"
+
+  const { id } = request.params
+  const params = [ id ]
+
+  config.cnn.query(sql, params, (error, results) => {
+    if (error) {
+      logger.error('Error SQL:', error.message)
+      response.status(500)
+    } 
+      if (results && results.length > 0) {
+          response.json(results)
+      } else {
+          response.json([])
+      }
+  })
+})
+
 appRoutes.get('/sponsor/:id', (request, response) => {
     let sql = "SELECT nombre, apellidos, email, celular"
     sql += " FROM referidos"
@@ -198,6 +219,5 @@ appRoutes.get('/sponsor/:id', (request, response) => {
         }
     })
 })
-  
   
 module.exports = appRoutes
