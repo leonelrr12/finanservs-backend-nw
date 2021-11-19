@@ -181,7 +181,7 @@ appRoutes.get('/sponsor/:id', (request, response) => {
     sql += " FROM referidos"
     sql += " WHERE id in ("
     sql += " SELECT id_ref FROM referidos"
-    sql += " WHERE id=?"
+    sql += " WHERE id=? )"
 
     const { id } = request.params
     const params = [ id ]
