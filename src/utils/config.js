@@ -17,7 +17,8 @@ const cnn = mysql.createConnection({
     database: process.env.DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PWD,
-    port: process.env.PORTDB
+    port: process.env.PORTDB,
+    connect_timeout: 1000
 })
 
 
