@@ -142,12 +142,12 @@ appRoutes.post("/user", async (request, response) => {
   }
 });
 
-appRoutes.post("/login", (request, response) => {
+appRoutes.post("/login", async (request, response) => {
   let sql = "SELECT id,id_ref,email,nombre,apellidos,celular,hash";
   sql += " FROM referidos a";
-  sql += " WHERE email=?";
+  sql += " WHERE email = ?";
 
-  const { email, password } = request.body;
+  const { email, password } = request.body.user;
   const params = [email];
 
   config.cnn.query(sql, params, async (error, rows, fields) => {
@@ -171,7 +171,6 @@ appRoutes.post("/login", (request, response) => {
           token,
         });
       } else {
-        console.log(hash);
         logger.error("Error Seguridad:", "Credenciales Inválidas ...!");
         response.status(200).json({
           message: "Credenciales Inválidas ...!",
